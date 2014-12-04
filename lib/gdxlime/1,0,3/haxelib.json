@@ -1,0 +1,11 @@
+{
+  "name": "gdxlime",
+  "url": " ",
+  "license": "MIT",
+  "tags": [ "cpp", "html5" ],
+  "description": "opengl es 2d/3d engine",
+  "version": "1.0.3",
+  "releasenote": "",
+  "contributors": [ "djoker", "openfl" ],
+  "dependencies": {"lime"}
+}

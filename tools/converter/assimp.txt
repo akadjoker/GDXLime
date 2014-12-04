@@ -1,0 +1,79 @@
+Info,  T4960: Assim 4 delphi BY Luis Santos AKA DJOKER - 01/09/2014
+Info,  T4960: Load F:\haxe\gdx\landscape\tools\coberter\castel.3ds
+Debug, T4960: Assimp 3.0.1262 x86 msvc shared singlethreaded
+Info,  T4960: Found a matching importer for this file format
+Info,  T4960: Import root directory is 'F:\haxe\gdx\landscape\tools\coberter\'
+Info,  T4960: 3DS file format version: 3
+Warn,  T4960: No hierarchy information has been found in the file. 
+Info,  T4960: Entering post processing pipeline
+Debug, T4960: RemoveRedundantMatsProcess begin
+Info,  T4960: RemoveRedundantMatsProcess finished. 6 redundant and 0 unused materials
+Debug, T4960: OptimizeMeshesProcess begin
+Debug, T4960: OptimizeMeshesProcess finished
+Debug, T4960: FindDegeneratesProcess begin
+Debug, T4960: FindDegeneratesProcess finished
+Debug, T4960: GenUVCoordsProcess begin
+Debug, T4960: GenUVCoordsProcess finished
+Debug, T4960: TriangulateProcess begin
+Debug, T4960: TriangulateProcess finished. There was nothing to be done.
+Debug, T4960: SortByPTypeProcess begin
+Info,  T4960: Points: 0, Lines: 0, Triangles: 23, Polygons: 0 (Meshes, X = removed)
+Debug, T4960: SortByPTypeProcess finished
+Debug, T4960: FindInvalidDataProcess begin
+Debug, T4960: FindInvalidDataProcess finished. Everything seems to be OK.
+Debug, T4960: SplitLargeMeshesProcess_Triangle begin
+Debug, T4960: SplitLargeMeshesProcess_Triangle finished. There was nothing to do
+Debug, T4960: Generate spatially-sorted vertex cache
+Debug, T4960: GenVertexNormalsProcess begin
+Debug, T4960: GenVertexNormalsProcess finished. Normals are already there
+Debug, T4960: JoinVerticesProcess begin
+Debug, T4960: Mesh 0 (0) | Verts in: 24 out: 16 | ~33.3333%
+Debug, T4960: Mesh 1 (1) | Verts in: 24 out: 16 | ~33.3333%
+Debug, T4960: Mesh 2 (2) | Verts in: 144 out: 88 | ~38.8889%
+Debug, T4960: Mesh 3 (3) | Verts in: 6 out: 4 | ~33.3333%
+Debug, T4960: Mesh 4 (4) | Verts in: 6 out: 4 | ~33.3333%
+Debug, T4960: Mesh 5 (5) | Verts in: 18 out: 14 | ~22.2222%
+Debug, T4960: Mesh 6 (6) | Verts in: 96 out: 54 | ~43.75%
+Debug, T4960: Mesh 7 (7) | Verts in: 60 out: 26 | ~56.6667%
+Debug, T4960: Mesh 8 (8) | Verts in: 18 out: 12 | ~33.3333%
+Debug, T4960: Mesh 9 (9) | Verts in: 18 out: 14 | ~22.2222%
+Debug, T4960: Mesh 10 (10) | Verts in: 300 out: 150 | ~50%
+Debug, T4960: Mesh 11 (11) | Verts in: 12 out: 8 | ~33.3333%
+Debug, T4960: Mesh 12 (12) | Verts in: 18 out: 14 | ~22.2222%
+Debug, T4960: Mesh 13 (13) | Verts in: 258 out: 144 | ~44.186%
+Debug, T4960: Mesh 14 (14) | Verts in: 12 out: 8 | ~33.3333%
+Debug, T4960: Mesh 15 (15) | Verts in: 210 out: 106 | ~49.5238%
+Debug, T4960: Mesh 16 (16) | Verts in: 12 out: 8 | ~33.3333%
+Debug, T4960: Mesh 17 (17) | Verts in: 336 out: 193 | ~42.5595%
+Debug, T4960: Mesh 18 (18) | Verts in: 336 out: 186 | ~44.6429%
+Debug, T4960: Mesh 19 (19) | Verts in: 114 out: 67 | ~41.2281%
+Debug, T4960: Mesh 20 (20) | Verts in: 114 out: 67 | ~41.2281%
+Debug, T4960: Mesh 21 (21) | Verts in: 60 out: 36 | ~40%
+Debug, T4960: Mesh 22 (22) | Verts in: 60 out: 36 | ~40%
+Info,  T4960: JoinVerticesProcess finished | Verts in: 2256 out: 1271 | ~43.7%
+Debug, T4960: SplitLargeMeshesProcess_Vertex begin
+Debug, T4960: SplitLargeMeshesProcess_Vertex finished. There was nothing to do
+Debug, T4960: LimitBoneWeightsProcess begin
+Debug, T4960: LimitBoneWeightsProcess end
+Debug, T4960: ImproveCacheLocalityProcess begin
+Debug, T4960: Mesh 0 | ACMR in: 2.000000 out: 2.000000 | ~0.0%
+Debug, T4960: Mesh 1 | ACMR in: 2.000000 out: 2.000000 | ~0.0%
+Debug, T4960: Mesh 2 | ACMR in: 1.833333 out: 1.833333 | ~0.0%
+Debug, T4960: Mesh 5 | ACMR in: 2.333333 out: 2.333333 | ~0.0%
+Debug, T4960: Mesh 6 | ACMR in: 1.718750 out: 1.687500 | ~1.8%
+Debug, T4960: Mesh 7 | ACMR in: 1.300000 out: 1.300000 | ~0.0%
+Debug, T4960: Mesh 9 | ACMR in: 2.500000 out: 2.333333 | ~6.7%
+Debug, T4960: Mesh 10 | ACMR in: 1.520000 out: 1.500000 | ~1.3%
+Debug, T4960: Mesh 12 | ACMR in: 2.333333 out: 2.333333 | ~0.0%
+Debug, T4960: Mesh 13 | ACMR in: 1.697674 out: 1.674419 | ~1.4%
+Debug, T4960: Mesh 15 | ACMR in: 1.514286 out: 1.514286 | ~0.0%
+Debug, T4960: Mesh 17 | ACMR in: 1.732143 out: 1.723214 | ~0.5%
+Debug, T4960: Mesh 18 | ACMR in: 1.696429 out: 1.660714 | ~2.1%
+Debug, T4960: Mesh 19 | ACMR in: 1.763158 out: 1.763158 | ~0.0%
+Debug, T4960: Mesh 20 | ACMR in: 1.763158 out: 1.763158 | ~0.0%
+Debug, T4960: Mesh 21 | ACMR in: 1.850000 out: 1.800000 | ~2.7%
+Debug, T4960: Mesh 22 | ACMR in: 1.850000 out: 1.800000 | ~2.7%
+Info,  T4960: Cache relevant are 17 meshes (730 faces). Average output ACMR is 1.680822
+Debug, T4960: ImproveCacheLocalityProcess finished. 
+Info,  T4960: Leaving post processing pipeline
+Info,  T4960: Import of scene  succeeded.

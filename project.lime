@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+<meta title="Large Landscape" package="com.gdx.djokersoft" version="1.0.0" company="djokersoft" />);
+<app main="Main" file="landscape" path="bin" />
+<window background="#000000" fps="60" borderless="false"  />
+
+	<window width="800" height="640" unless="mobile" />
+	<window resizable="true" />
+	<window orientation="landscape"  vsync="true" antialiasing="0" if="cpp" />
+	<window depth-buffer="true"/>
+
+	<source path="src" />
+	<haxelib name="lime" />
+
+	<assets path="assets" exclude="*.svg" rename="data" />
+	<icon path="assets/lime.svg" />
+</project>

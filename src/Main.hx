@@ -20,7 +20,7 @@ class Main extends App
 	}
 	override function OnStart():Void 
 	{
- 	 gdx.setScreen(new Screen_1());
+ 	 gdx.setScreen(new Screen_2());
 	}
 	
 	

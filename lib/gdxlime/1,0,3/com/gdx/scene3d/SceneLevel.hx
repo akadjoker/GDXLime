@@ -2,7 +2,7 @@ package com.gdx.scene3d;
 /*
  Copyright (C) 2013-2014 Luis Santos AKA DJOKER
  
- This file is part of Lime 6DX.
+ This file is part of GDXLime .
  
  TrenchBroom is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,8 +15,9 @@ package com.gdx.scene3d;
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with gdx.  If not, see <http://www.gnu.org/licenses/>.
+ along with GDXLime.  If not, see <http://www.gnu.org/licenses/>.
  */
+
  
 import com.gdx.collision.Coldet;
 import com.gdx.collision.CollisionData;

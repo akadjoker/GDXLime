@@ -1985,7 +1985,6 @@ UpdateBoundingBox();
 		{
 			
 			var  flags:Int = file.readInt();//
-		    //trace('flags : ' + flags);
 			var brush:Brush = new Brush(0);
 			
 			var r = file.readFloat();
@@ -2074,6 +2073,9 @@ UpdateBoundingBox();
 	    for (i in 0 ... countMeshs)
 		{
 
+			var  nameSize:Int = file.readInt();//
+			var name:String = file.readUTFBytes(nameSize);
+			trace("sub mehs name:" + name);
 			var  flags:Int = file.readInt();//
 			var surf:Surface = createSurface();
 			surf.materialIndex = file.readInt();
@@ -2147,6 +2149,8 @@ UpdateBoundingBox();
 		//trace("Mesh ["+i+"] , num Vertices["+numVertices+"],  num Faces["+numFaces+"],  num UVCoords["+numUVCoords+"] , numColor["+numColors+"]" );
 		}
 		
+				var numBones:Int = file.readInt();
+				
 		
 		UpdateBoundingBox();
 		

@@ -31,6 +31,18 @@ import haxe.io.Path;
 import lime.Assets;
 import lime.utils.ByteArray;
 
+class H3DKeyFrame
+{
+public var Pos:Vector3;
+public var Rot:Quaternion;
+public var time:Float;
+public function new(t:Float,v:Vector3,r:Quaternion)
+{
+	Pos = v;
+	time = t;
+	Rot = r;
+}
+}
 
 class H3DWight
 {
@@ -54,10 +66,10 @@ class H3DVertex
 	{
 		Pos = Vector3.zero;
 	    bones = [];
-		bones.push(new H3DWight( -1, 1));
-		bones.push(new H3DWight( -1, 1));
-		bones.push(new H3DWight( -1, 1));
-		bones.push(new H3DWight( -1, 1));
+		bones.push(new H3DWight( -1, 0));
+		bones.push(new H3DWight( -1, 0));
+		bones.push(new H3DWight( -1, 0));
+		bones.push(new H3DWight( -1, 0));
 		numBones = 0;
 	}
 	public function sort():Void
@@ -66,11 +78,12 @@ class H3DVertex
 	bones.sort(function WightIndex(a:H3DWight, b:H3DWight):Int
     {
 
-    if (a.Wight < b.Wight) return -1;
-    if (a.Wight > b.Wight) return 1;
+    if (a.Wight > b.Wight) return -1;
+    if (a.Wight < b.Wight) return 1;
     return 0;
     } 
 	);
+	
 	}
 }
 
@@ -87,8 +100,8 @@ class H3DBone
 class H3DJoint extends SceneNode
 {
 	  
-     	public var Pos:Array<PosKeyFrame>;
-		public var Rot:Array<RotKeyFrame>;
+     	public var Frames:Array<H3DKeyFrame>;
+		
 	    public  var offMatrix:Matrix4 = Matrix4.Identity(); 
 		public var index:Int;
 		public var numKeys:Int;
@@ -101,11 +114,11 @@ class H3DJoint extends SceneNode
 		 super(scene, Parent, id, name);
 		 parentName = pName;
 
-		 Pos = [];
-		 Rot = [];
+		 Frames = [];
+	
 	 /*
 	     var debug:Mesh = scene.addCube(this);
-		  debug.MeshScale(0.2, 0.2, 0.2);
+		  debug.MeshScale(0.8, 0.8, 0.8);
 		  debug.getBrush(0).DiffuseColor.set(1, 0, 0);
 	*/
 		 index = 0;
@@ -117,36 +130,15 @@ class H3DJoint extends SceneNode
 		
 		public function initialize():Void
 		{
-			
-		             rotationQuaternion.toRotationMatrix(localRotation);
-	                 LocalWorld.makeTransform(position, scaling, rotationQuaternion);
-	                  if (this.parent != null)
-				      {
-						  
-					  LocalWorld.append(parent.AbsoluteTransformation);
-					  }
-					  
+		   		      UpdateAbsoluteTransformation();
 					  LocalWorld.invertToRef(offMatrix);
-					  UpdateAbsoluteTransformation();
 		}
 		
-	private function FindPosition(time:Float):Int
+	private function FindKey(time:Float):Int
 	{
-		for (i in 0...Pos.length-1)
+		for (i in 0...Frames.length-1)
 		{
-			if (time < Pos[i + 1].time)
-			{
-				return i;
-			}
-		}
-		return 0;
-	}
-
-private function FindRotation(time:Float):Int
-	{
-		for (i in 0...Rot.length-1)
-		{
-			if (time < Rot[i + 1].time)
+			if (time < Frames[i + 1].time)
 			{
 				return i;
 			}
@@ -155,48 +147,33 @@ private function FindRotation(time:Float):Int
 	}
 
 
-	
-	private function animatePos(movetime:Float):Void
-	{
-		
-		    var currentIndex:Int = FindPosition(movetime);
-            var nextIndex:Int = (currentIndex + 1);
-			
-			if (nextIndex > Pos.length)
-			{
-				return;
-			}  
-				
-			  var DeltaTime :Float= (Pos[nextIndex].time -Pos[currentIndex].time);
-             var Factor = (movetime - Pos[currentIndex].time) / DeltaTime;
-			 this.position = Vector3.Lerp(Pos[currentIndex].Pos, Pos[nextIndex].Pos, Factor);
-	}
-	
-private function animateRot(movetime:Float):Void
-	{
-		
 
-		    var currentIndex:Int = FindRotation(movetime);
+	
+	private function animate(movetime:Float):Void
+	{
+		
+		    var currentIndex:Int = FindKey(movetime);
             var nextIndex:Int = (currentIndex + 1);
 			
-			if (nextIndex > Rot.length)
+			if (nextIndex > Frames.length)
 			{
 				return;
 			}  
 				
-			 var DeltaTime :Float= (Rot[nextIndex].time -Rot[currentIndex].time);
-             var Factor = (movetime - Rot[currentIndex].time) / DeltaTime;
-			 rotate(Quaternion.Slerp(Rot[currentIndex].Rot, Rot[nextIndex].Rot, Factor));
-			
+			  var DeltaTime :Float= (Frames[nextIndex].time -Frames[currentIndex].time);
+             var Factor = (movetime - Frames[currentIndex].time) / DeltaTime;
+			 this.position = Vector3.Lerp(Frames[currentIndex].Pos, Frames[nextIndex].Pos, Factor);
+			 rotate(Quaternion.Slerp(Frames[currentIndex].Rot, Frames[nextIndex].Rot, Factor));
+			 
 	}
+	
 	
 	
 		public function animateJoints(TimeInSeconds:Float):Void
 		{
 			
-			animatePos(TimeInSeconds);
-		    animateRot(TimeInSeconds);
-		   
+			animate(TimeInSeconds);
+		    
 		   
 		   
 		   UpdateAbsoluteTransformation();
@@ -215,7 +192,7 @@ private function animateRot(movetime:Float):Void
 		 {
 			 scene.lines.lineVector(vector, vector, 1, 0, 0, 1);
 		 }
-		 
+		
  		}
 }
 
@@ -381,14 +358,14 @@ private var Joints:Array<H3DJoint>;
 				
 				
 		var  countMeshs:Int = file.readInt();
-		trace("INFO:numsub surfaces:"+countMeshs);
+	///	trace("INFO:numsub surfaces:"+countMeshs);
 
 	    for (i in 0 ... countMeshs)
 		{
 
 			var  nameSize:Int = file.readInt();//
 			var name:String = file.readUTFBytes(nameSize);
-			trace("sub mehs name:" + name);
+		//	trace("sub mehs name:" + name);
 			var  flags:Int = file.readInt();//
 			var surf:Surface = createSurface();
 			surf.materialIndex = file.readInt();
@@ -470,7 +447,7 @@ private var Joints:Array<H3DJoint>;
 		
 		var numBones:Int = file.readInt();
 		
-		trace("Num of bones:"+numBones);
+	//	trace("Num of bones:"+numBones);
 		
 		if (numBones !=0)
 		{
@@ -492,7 +469,7 @@ private var Joints:Array<H3DJoint>;
 			var  nameSize:Int = file.readInt();//
 			var bname:String = file.readUTFBytes(nameSize);
 			
-			trace(nameSize+ " " + bname);
+		//	trace(nameSize+ " " + bname);
 			
 			var  parentnameSize:Int = file.readInt();//
 			var parentname:String = file.readUTFBytes(parentnameSize);
@@ -500,9 +477,9 @@ private var Joints:Array<H3DJoint>;
 			var numKeys:Int = file.readInt();
 			
 			
-			trace("Bone name:" + bname);
-			trace("Bone parent name:" + parentname);
-			trace("Num key Frames :" + numKeys);
+		//	trace("Bone name:" + bname);
+		//	trace("Bone parent name:" + parentname);
+		//	trace("Num key Frames :" + numKeys);
 			
 			var Pos:Vector3 = Vector3.zero;
 			var Rot:Quaternion = Quaternion.Zero();
@@ -521,19 +498,17 @@ private var Joints:Array<H3DJoint>;
 			
 			
 		
-			if (parentname != "none")
-			{
+
 				for (i in 0...Joints.length)
 			    {
 					if ( Joints[i].name == parentname)
 					{
 						Joint.parent = Joints[i];
 						Joint.initialize();
-						Joint.UpdateAbsoluteTransformation();
 						break;
 					}
 		     	}
-			}
+	
 			
 			
 			for (x in 0...numKeys)
@@ -550,18 +525,13 @@ private var Joints:Array<H3DJoint>;
 			Rot.z = file.readFloat();
 			Rot.w = file.readFloat();
 			
-			trace("time:"+time);
+			//trace("time:"+time);
 			
-			Joint.Rot.push(new RotKeyFrame(time, Rot));
-			Joint.Pos.push(new PosKeyFrame(time, Pos));
+			Joint.Frames.push(new H3DKeyFrame(time,Pos, Rot));
 			
-			 /*
-			  * var debug:Mesh = scene.addCube();
-		           debug.MeshScale(0.2, 0.2, 0.2);
-		           debug.getBrush(0).DiffuseColor.set(1, 1, 1);
-		           debug.position.copyFrom(Pos);
-				   debug.rotate(Rot);
-			*/
+			
+			 
+			
 			}
 			
 		
@@ -570,9 +540,10 @@ private var Joints:Array<H3DJoint>;
 			}
 			
 			
+			
 			for (i in 0...CountSurfaces())
 			{
-				    var  numJoints:Int = file.readInt();//
+			  var  numJoints:Int = file.readInt();//
 			  for (x in 0...numJoints)
 			 {
 				 			var  nameSize:Int = file.readInt();//
@@ -590,19 +561,27 @@ private var Joints:Array<H3DJoint>;
 				 var vertexId:Int = file.readInt();//
 				 var Weight:Float = file.readFloat();//
 				 
+				//  trace( " name :" + name +" Index :" + jointId);
+				  
 				 for (count in 0...4)
 	             {
 					 if (Bones[i].vertex[vertexId].bones[count].boneId == -1)
 					 {
 						// trace("Vertex have :"+jointId+" name :"+name );
-					//	 if (Weight < 0.001)  Weight = 0.0;
-				    //     if (Weight > 0.999)  Weight = 1.0;
+						 
+						 
+						 if (Weight < 0.001)  Weight = 0.0;
+				         if (Weight > 0.999)  Weight = 1.0;
 				         Bones[i].vertex[vertexId].bones[count].Wight = Weight;
 						 Bones[i].vertex[vertexId].bones[count].boneId = jointId;
 						 Bones[i].vertex[vertexId].numBones++;
+						 
+					//	 trace( " name :" + name +"count :"+Bones[i].vertex[vertexId].numBones);
 						 break;
 					 }
 	             }
+				 
+				Bones[i].vertex[vertexId].sort();
 				 
 			 }
 			 
@@ -611,15 +590,24 @@ private var Joints:Array<H3DJoint>;
 			}
 			
 			}//
+		
 		}
-				
+			
 		
 		UpdateBoundingBox();
-		
 		sortMaterial();
-	  
-		
-    
+	  /*
+		for (b in 0... Bones.length)
+		{
+			for (v in 0... Bones[b].vertex.length)
+			{
+				for (i in 0... Bones[b].vertex[v].numBones)
+				{
+				trace("bone id:" +	Bones[b].vertex[v].bones[i].boneId + " force: " + Bones[b].vertex[v].bones[i].Wight);
+				}
+			}
+		}
+    */
 	
 		brushes = null;
 	}
@@ -659,6 +647,7 @@ public function getFrameNr():Int
 	
   private function OnAnimate(timeMs:Int):Void
   {
+	
 	  if (LastTimeMs==0)	// first frame
 	{
 		LastTimeMs = timeMs;
@@ -675,7 +664,7 @@ public function getFrameNr():Int
 			Joint.animateJoints(CurrentFrameNr);
 		}
 
-		
+	
 		for ( s in 0...surfaces.length)
 		{
 		
@@ -716,6 +705,7 @@ public function getFrameNr():Int
 			   y = ( tform_mat.m[1] * ovx + tform_mat.m[5] * ovy + tform_mat.m[9] * ovz  + tform_mat.m[13] ) * w;
 		 	   z = ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
 		
+			
 			  if (vertex.bones[1].boneId != -1)
 		      {
 			    var tform_mat:Matrix4 =Matrix4.multiplyWith( Joints[vertex.bones[1].boneId].AbsoluteTransformation,Joints[vertex.bones[1].boneId].offMatrix);
@@ -745,9 +735,11 @@ public function getFrameNr():Int
 		 	   z =z+ ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
 		
 		      }
+			  
 		      }
 			 
 		     }
+			
 		    }
 		  
 			
@@ -757,7 +749,7 @@ public function getFrameNr():Int
 		surf.VertexCoords(i, x, y, z);
 		}
 		}
-	
+
 	
 	LastTimeMs = timeMs;
   }
@@ -822,7 +814,7 @@ override public function render(camera:Camera)
 		{
 			
 			  scene.setMaterial(surfaces[i].brush);
-		//	  surfaces[i].primitiveType = GL.LINE_LOOP;
+			//  surfaces[i].primitiveType = GL.LINE_LOOP;
 		     surfaces[i].render();
 			  
 		}

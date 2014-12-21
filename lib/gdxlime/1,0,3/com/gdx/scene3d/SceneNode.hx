@@ -287,7 +287,7 @@ class SceneNode extends Node
 	                 if (this.parent != null)
 				      {
 					  LocalWorld.append(parent.AbsoluteTransformation);
-					  }
+					 }
 
 				 }
 			case 1:

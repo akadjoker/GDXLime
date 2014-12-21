@@ -188,6 +188,11 @@ class Scene
 			MeshShaders.push(node);
 			
 		} else
+		if (Std.is(node, H3DMeshEx))
+		{
+			MeshShaders.push(node);
+			
+		} else
 		if (Std.is(node, MultitexturedTerrain))
 		{
 			MeshShaders.push(node);

@@ -1356,7 +1356,66 @@ void main()
 	
 	
 }";
+//**********************************************
+///*********************************************
 
+static public var VertexShaderSkin =
+"
+attribute vec3 inVertexPosition;
+attribute vec2 inTexCoord0;
+attribute vec4  BoneIDs;
+attribute vec4  Weights;
+
+uniform mat4 WorldMatrix;
+uniform mat4 ViewMatrix;
+uniform mat4 ProjectionMatrix;
+uniform mat4 gBones[40];
+
+varying vec2 varTexCoord0;
+
+
+void main(void)
+{
+	 int  	index0 = int(BoneIDs[0]);
+	 int  	index1 = int(BoneIDs[1]);
+	 int  	index2 = int(BoneIDs[2]);
+	 int  	index3 = int(BoneIDs[3]);
+	 
+
+		
+
+	mat4 BoneTransform = gBones[index0] * Weights.x;
+    BoneTransform     += gBones[index1] * Weights.y;
+    BoneTransform      += gBones[index2] * Weights.z;
+    BoneTransform     += gBones[index3] * Weights.w;
+	vec4 PosL    = BoneTransform * vec4(inVertexPosition, 1.0);
+				
+	varTexCoord0 = inTexCoord0;
+    gl_Position =   ProjectionMatrix * ViewMatrix * WorldMatrix * PosL;
+
+
+}
+";
+//******************
+
+static public var FragmentShaderSkin=
+
+#if !desktop
+"precision mediump float;" +
+#end
+"
+
+uniform sampler2D uTextureUnit0;
+varying vec2 varTexCoord0;
+void main ()
+{
+	    
+     	gl_FragColor =texture2D(uTextureUnit0, varTexCoord0);
+
+		
+	 
+}
+";
 
 } 
 

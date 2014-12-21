@@ -17,6 +17,9 @@ package com.gdx.scene3d ;
  You should have received a copy of the GNU General Public License
  along with GDXLime.  If not, see <http://www.gnu.org/licenses/>.
  */
+import com.gdx.gl.shaders.Shader;
+import com.gdx.gl.shaders.SkinShader;
+import com.gdx.scene3d.buffer.SkinVertexBuffer;
 import lime.graphics.opengl.GL;
 import com.gdx.color.Color4;
 import com.gdx.gl.shaders.Brush;
@@ -55,16 +58,15 @@ class H3DWight
 		}
 }
 
-class H3DVertex
+class H3DSkin
 {
-	public var  Pos:Vector3;
+
 	public var  bones:Array<H3DWight>;
 	public var numBones:Int;
 
 	
 	public function new() 
 	{
-		Pos = Vector3.zero;
 	    bones = [];
 		bones.push(new H3DWight( -1, 0));
 		bones.push(new H3DWight( -1, 0));
@@ -87,14 +89,6 @@ class H3DVertex
 	}
 }
 
-class H3DBone
-{
-  public var vertex:Array<H3DVertex>;
-  public function new() 
-	{
-		vertex=[];
-	}
-}
 
 
 class H3DJoint extends SceneNode
@@ -173,11 +167,9 @@ class H3DJoint extends SceneNode
 		{
 			
 			animate(TimeInSeconds);
-		    
-		   
 		   
 		   UpdateAbsoluteTransformation();
-		
+/*		
 
 		 var vector:Vector3 = Vector3.zero;
 		 var parentvector:Vector3 = Vector3.zero;
@@ -192,21 +184,172 @@ class H3DJoint extends SceneNode
 		 {
 			 scene.lines.lineVector(vector, vector, 1, 0, 0, 1);
 		 }
-		
+		*/
  		}
+		
 }
 
-class H3DMesh extends Mesh
+class SkinSurface 
+{
+    public var   vert_coords:Array<Float>;
+	public var   vert_tex_coords0:Array<Float>;
+	public var   bones:Array<Float>;
+	public var   wights:Array<Float>;
+	public var  shader:SkinShader;
+	public var  brush:Brush;
+	public var  no_verts:Int;
+    public var  no_tris:Int;
+	public var  tris:Array<Int>;
+	public var  reset_vbo:Int;
+	public var skin:Array<H3DSkin>;
+	public var  primitiveType:Int;
+	public var  vertexbuffer:SkinVertexBuffer;
+	public var  materialIndex:Int;
+		
+	
+	
+	public function new(s:SkinShader) 
+	{
+		brush = new Brush(0);
+		no_verts = 0;
+		no_tris = 0;
+		tris = new Array<Int>();
+    	reset_vbo = -1;
+    	vert_coords = new Array<Float>();
+		vert_tex_coords0 = new Array<Float>();
+		bones = [];
+	    wights = [];
+		skin = [];
+		this.shader = s;
+		vertexbuffer = new SkinVertexBuffer(this.shader);
+		primitiveType = GL.TRIANGLES;
+		
+	}
+
+	public function AddVertex(x:Float, y:Float, z:Float, u:Float=0.0, v:Float=0.0):Int
+	{
+	
+	no_verts++;
+	
+	vert_coords.push(x);
+	vert_coords.push(y);
+	vert_coords.push(z); 
+	
+	
+	
+	vert_tex_coords0.push(u);
+	vert_tex_coords0.push(v);
+
+		
+	return no_verts-1;
+
+}
+
+	public function AddTriangle(v0:Int, v1:Int, v2:Int):Int
+	{
+	
+	no_tris++;
+	
+	tris.push(v2);
+	tris.push(v1);
+	tris.push(v0);
+	
+	reset_vbo=reset_vbo|1|2|16;
+	return no_tris;
+    }
+	public function UpdateVBO():Void
+	{
+
+	 if(reset_vbo==-1) reset_vbo=1|2|4|8|16;
+
+	
+        if (reset_vbo&1==1)
+		{		
+			if(vert_coords.length>0)vertexbuffer.uploadVertex(vert_coords);
+		}
+		
+	
+	
+		if (reset_vbo&2==2)
+		{
+		
+			if (vert_tex_coords0.length>0)vertexbuffer.uploadUVCoord0(vert_tex_coords0);
+		}
+		
+	    if (reset_vbo&4==4)
+		{		
+			if(bones.length>0)vertexbuffer.uploadBones(bones);
+		}
+		
+		
+	    if (reset_vbo&8==8)
+		{		
+			if (wights.length > 0) vertexbuffer.uploadHeigs(wights);
+		}	
+
+	   
+	
+			
+        if (reset_vbo&16==16)
+		{		
+	       if (tris.length>0)vertexbuffer.uploadIndices(tris );
+		}
+		
+		reset_vbo = 0;
+	
+	
+		
+	}
+	
+	
+	public function render()
+	{
+		if (no_verts <= 0) return ; // ????? 
+	   UpdateVBO();
+		
+
+		if (brush.useTextures)
+		{
+			if (brush.texture0 != null)
+			{
+				shader.enableTexture(true);
+			    shader.setTexture0(brush.texture0);
+				vertexbuffer.useTexture = true;
+			}
+			
+		
+		} else
+		{
+				shader.enableTexture(false);
+				vertexbuffer.useTexture = false;
+				vertexbuffer.useDetail = false;
+		}
+
+	
+		vertexbuffer.render(primitiveType, no_tris * 3);
+		
+		
+		
+		Gdx.Instance().numSurfaces += 1 ;
+		Gdx.Instance().numTris += no_tris ;
+		Gdx.Instance().numVertex += no_verts ;
+	}
+}
+	
+class H3DMeshEx extends SceneNode
 {
 	
 private var  file:ByteArray;
-private var  Bones:Array<H3DBone>;
+//private var  Bones:Array<H3DBone>;
 
 private var textures:Array<String>;
 
 private var brushes:Array<Brush> = new Array<Brush>();
 private var texturepath:String;
 private var isAnimated:Bool;
+
+public  var  surfaces:Array<SkinSurface>;
+public var shader:SkinShader;
 
 private var Joints:Array<H3DJoint>;
 
@@ -224,12 +367,13 @@ private var Joints:Array<H3DJoint>;
 	public function new(scene:Scene,Parent:SceneNode = null , id:Int = 0, name:String="H3DMesh")  
 	{
 		 super(scene, Parent, id, name);
+		 shader = new SkinShader();
 		
 		 textures = [];
 		 brushes = [];
 		 Joints = [];
-		 Bones = [];
-    
+	
+        surfaces = [];
 		 FramesPerSecond = 0.025;
 		 StartFrame = 0;
 		 EndFrame = 0;
@@ -245,7 +389,21 @@ private var Joints:Array<H3DJoint>;
 		
 	}
 	
-
+     public function CountSurfaces():Int
+	{
+		return surfaces.length;
+	}
+	public  function createSurface():SkinSurface
+	{
+		var surf:SkinSurface = new  SkinSurface(shader);
+		surfaces.push(surf);
+		return surf;
+	}
+	
+	public  function getSurface(index:Int):SkinSurface
+	{
+		return surfaces[index];
+	}
 
 	public  function load(filename:String,path:String):Void
 	
@@ -339,7 +497,7 @@ private var Joints:Array<H3DJoint>;
 				  
 		     if (Assets.exists(path  + texture))
 			{
-		  brush.setDetail( Gdx.Instance().getTexture(path  + texture, true));
+		    //  brush.setDetail( Gdx.Instance().getTexture(path  + texture, true));
 			} else
 			{
 				trace("ERROR : dont find"+path  + texture+" detail texture");
@@ -367,7 +525,7 @@ private var Joints:Array<H3DJoint>;
 			var name:String = file.readUTFBytes(nameSize);
 		//	trace("sub mehs name:" + name);
 			var  flags:Int = file.readInt();//
-			var surf:Surface = createSurface();
+			var surf:SkinSurface = createSurface();
 			surf.materialIndex = file.readInt();
 			var numVertices:Int=file.readInt();
 			var numFaces:Int=file.readInt();
@@ -376,18 +534,12 @@ private var Joints:Array<H3DJoint>;
 		
 			
 			surf.brush.clone(brushes.get(surf.materialIndex));
-			if (numUVCoords == 1)
-			{
-			surf.brush.setMaterialType(0);
-			} else
-			{
-				surf.brush.setMaterialType(1);
-			}
+		
 			 
 			//
 			
 		//	trace("Mesh ["+i+"] , num Vertices["+numVertices+"],  num Faces["+numFaces+"],  num UVCoords["+numUVCoords+"], Material:["+surf.materialIndex+']' );
-			var  BoneVertex:H3DBone = new H3DBone();
+			//var  BoneVertex:H3DBone = new H3DBone();
 			
 			for (x in 0...numVertices)
 			{
@@ -397,10 +549,8 @@ private var Joints:Array<H3DJoint>;
 				pos.y = file.readFloat();
 				pos.z = file.readFloat();
 				
-				var vertex:H3DVertex = new H3DVertex();
-				vertex.Pos.copyFrom(pos);
 				
-				BoneVertex.vertex.push(vertex);
+				surf.skin.push(new H3DSkin() );
 				
 				
 				nor.x = file.readFloat();
@@ -418,20 +568,19 @@ private var Joints:Array<H3DJoint>;
 				   
 					uv2.x = file.readFloat();
 				    uv2.y =1*- file.readFloat();
-					surf.AddFullVertex(pos.x, pos.y, pos.z, nor.x, nor.y, nor.z, uv.x, uv.y, uv2.x, uv2.y);
+					surf.AddVertex(pos.x, pos.y, pos.z,  uv.x, uv.y);
 					//trace(uv.toString());
 					//trace(uv2.toString());
 			} else
 			{
 				//trace(uv.toString());
-				surf.AddFullVertex(pos.x, pos.y, pos.z, nor.x, nor.y, nor.z, uv.x, uv.y, uv.x, uv.y);
+				surf.AddVertex(pos.x, pos.y, pos.z, uv.x, uv.y);
 			}
 			
 		//	trace(pos.toString());
 			
 		}
-		Bones.push(BoneVertex);
-			
+				
 			for (x in 0...numFaces)
 			{
 				var v0:Int = file.readInt();
@@ -440,8 +589,8 @@ private var Joints:Array<H3DJoint>;
 	    		surf.AddTriangle(v0, v1, v2);
 			}
 		//if(loadtexture) surf.brush.setTexture(textures.get(surf.materialIndex));	
-		 surf.updateBounding();	
-         surf.UpdateVBO();
+	
+     
 		//trace("Mesh ["+i+"] , num Vertices["+numVertices+"],  num Faces["+numFaces+"],  num UVCoords["+numUVCoords+"] , numColor["+numColors+"]" );
 		}
 		
@@ -544,6 +693,7 @@ private var Joints:Array<H3DJoint>;
 			for (i in 0...CountSurfaces())
 			{
 			  var  numJoints:Int = file.readInt();//
+			  var surf:SkinSurface = surfaces[i];
 			  for (x in 0...numJoints)
 			 {
 				 			var  nameSize:Int = file.readInt();//
@@ -565,51 +715,53 @@ private var Joints:Array<H3DJoint>;
 				  
 				 for (count in 0...4)
 	             {
-					 if (Bones[i].vertex[vertexId].bones[count].boneId == -1)
+					 if (surf.skin[vertexId].bones[count].boneId == -1)
 					 {
 						// trace("Vertex have :"+jointId+" name :"+name );
 						 
 						 
 						 if (Weight < 0.001)  Weight = 0.0;
 				         if (Weight > 0.999)  Weight = 1.0;
-				         Bones[i].vertex[vertexId].bones[count].Wight = Weight;
-						 Bones[i].vertex[vertexId].bones[count].boneId = jointId;
-						 Bones[i].vertex[vertexId].numBones++;
+				         surf.skin[vertexId].bones[count].Wight = Weight;
+						 surf.skin[vertexId].bones[count].boneId = jointId;
+						 surf.skin[vertexId].numBones++;
 						 
 					//	 trace( " name :" + name +"count :"+Bones[i].vertex[vertexId].numBones);
 						 break;
 					 }
 	             }
 				 
-				Bones[i].vertex[vertexId].sort();
+				surf.skin[vertexId].sort();
 				 
 			 }
-			 
-			 
-			
 			}
-			
-			}//
-		
-		}
+		}//
+	}
 			
 		
-		UpdateBoundingBox();
+		
 		sortMaterial();
-	  /*
-		for (b in 0... Bones.length)
-		{
-			for (v in 0... Bones[b].vertex.length)
-			{
-				for (i in 0... Bones[b].vertex[v].numBones)
-				{
-				trace("bone id:" +	Bones[b].vertex[v].bones[i].boneId + " force: " + Bones[b].vertex[v].bones[i].Wight);
-				}
-			}
-		}
-    */
-	
 		brushes = null;
+		
+		
+		for ( s in 0...surfaces.length)
+		{
+		  var surf:SkinSurface = surfaces[s];
+
+		 for (i in 0...surf.skin.length)
+		{
+		   var vertex:H3DSkin = surf.skin[i];
+		   surf.bones.push(vertex.bones[0].boneId);
+		   surf.bones.push(vertex.bones[1].boneId);
+		   surf.bones.push(vertex.bones[2].boneId);
+		   surf.bones.push(vertex.bones[3].boneId);
+		   surf.wights.push(vertex.bones[0].Wight);
+		   surf.wights.push(vertex.bones[1].Wight);
+		   surf.wights.push(vertex.bones[2].Wight);
+		   surf.wights.push(vertex.bones[3].Wight);
+		 }
+	     surf.UpdateVBO();
+		}
 	}
 
 public function getJoint(name:String):H3DJoint
@@ -654,102 +806,13 @@ public function getFrameNr():Int
 	}
 	
 	buildFrameNr(timeMs - LastTimeMs);
-	
-
-	
-	
 	    for (i in 0... Joints.length)
 		{
 			var Joint:H3DJoint = Joints[i];
 			Joint.animateJoints(CurrentFrameNr);
 		}
-
-	
-		for ( s in 0...surfaces.length)
-		{
 		
-		var surf:Surface = surfaces[s];
-		
-		var Bone = Bones[s];
-		
-		
-		
-		for (i in 0...Bone.vertex.length)
-		{
-			
-			
-		   var vertex:H3DVertex = Bone.vertex[i];
-		   
-		var x:Float = 0;
-		var y:Float = 0;
-		var z:Float = 0;
-		var ovx:Float = 0;
-		var ovy:Float = 0;
-		var ovz:Float = 0;
-		
-		   if (vertex.bones[0].boneId != -1)
-		   {
-			  var pos:Vector3 = vertex.Pos;
-	
-			  
-			  var tform_mat:Matrix4 =Matrix4.multiplyWith( Joints[vertex.bones[0].boneId].AbsoluteTransformation,Joints[vertex.bones[0].boneId].offMatrix);
-			  
-			  var w:Float = vertex.bones[0].Wight;
-		
-		      
-			  ovx=pos.x;
-              ovy=pos.y;
-              ovz=pos.z;
-            
-			   x = ( tform_mat.m[0] * ovx + tform_mat.m[4] * ovy + tform_mat.m[8] * ovz  + tform_mat.m[12] ) * w;
-			   y = ( tform_mat.m[1] * ovx + tform_mat.m[5] * ovy + tform_mat.m[9] * ovz  + tform_mat.m[13] ) * w;
-		 	   z = ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
-		
-			
-			  if (vertex.bones[1].boneId != -1)
-		      {
-			    var tform_mat:Matrix4 =Matrix4.multiplyWith( Joints[vertex.bones[1].boneId].AbsoluteTransformation,Joints[vertex.bones[1].boneId].offMatrix);
-			
-			   var w:Float = vertex.bones[1].Wight;
-		       x =x+ ( tform_mat.m[0] * ovx + tform_mat.m[4] * ovy + tform_mat.m[8] * ovz  + tform_mat.m[12] ) * w;
-			   y =y+ ( tform_mat.m[1] * ovx + tform_mat.m[5] * ovy + tform_mat.m[9] * ovz  + tform_mat.m[13] ) * w;
-		 	   z =z+ ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
-		
-			   
-			  if (vertex.bones[2].boneId != -1)
-		      {
-		    	var tform_mat:Matrix4 =Matrix4.multiplyWith( Joints[vertex.bones[2].boneId].AbsoluteTransformation,Joints[vertex.bones[2].boneId].offMatrix);
-			
-			    var w:Float = vertex.bones[2].Wight;
-		       x =x+ ( tform_mat.m[0] * ovx + tform_mat.m[4] * ovy + tform_mat.m[8] * ovz  + tform_mat.m[12] ) * w;
-			   y =y+ ( tform_mat.m[1] * ovx + tform_mat.m[5] * ovy + tform_mat.m[9] * ovz  + tform_mat.m[13] ) * w;
-		 	   z =z+ ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
-		
-			   
-			   if (vertex.bones[3].boneId != -1)
-		      {
-		   	  var tform_mat:Matrix4 =Matrix4.multiplyWith( Joints[vertex.bones[3].boneId].AbsoluteTransformation,Joints[vertex.bones[3].boneId].offMatrix);
-			   var w:Float = vertex.bones[3].Wight;
-		       x =x+ ( tform_mat.m[0] * ovx + tform_mat.m[4] * ovy + tform_mat.m[8] * ovz  + tform_mat.m[12] ) * w;
-			   y =y+ ( tform_mat.m[1] * ovx + tform_mat.m[5] * ovy + tform_mat.m[9] * ovz  + tform_mat.m[13] ) * w;
-		 	   z =z+ ( tform_mat.m[2] * ovx + tform_mat.m[6] * ovy + tform_mat.m[10] * ovz + tform_mat.m[14] ) * w;
-		
-		      }
-			  
-		      }
-			 
-		     }
-			
-		    }
-		  
-			
-	
-				
-
-		surf.VertexCoords(i, x, y, z);
-		}
-		}
-
+		 
 	
 	LastTimeMs = timeMs;
   }
@@ -771,7 +834,7 @@ public function setFrameLoop( begin:Int, end:Int, loop:Bool = true ):Void
 }
 
 
-//! sets the speed with witch the animation is played
+
 public function setAnimationSpeed( framesPerSecond:Float):Void
 {
 	FramesPerSecond = framesPerSecond * 0.001;
@@ -779,10 +842,7 @@ public function setAnimationSpeed( framesPerSecond:Float):Void
 
 private function   buildFrameNr( timeMs:Int)
 {
-	
-	
 		CurrentFrameNr += timeMs * FramesPerSecond;
-
 			if (CurrentFrameNr > EndFrame)
 			{
 				CurrentFrameNr =  StartFrame + Util.fMod( CurrentFrameNr - StartFrame , (EndFrame-StartFrame));
@@ -804,8 +864,16 @@ override public function render(camera:Camera)
     	var scaleFactor:Float = Math.max(scaling.x, scaling.y);
              scaleFactor = Math.max(scaleFactor,scaling.z);
 		Gdx.Instance().numMesh++;
-	     scene.shader.setWorldMatrix(meshTrasform);
+		shader.Bind();
+		shader.setWorldMatrix(meshTrasform);
+		shader.setProjMatrix(camera.projMatrix);
+		shader.setViewMatrix(camera.viewMatrix);
 	
+		 for (i in 0... Joints.length)
+		{
+			 var tform_mat:Matrix4 =  Matrix4.multiplyWith( Joints[i].AbsoluteTransformation, Joints[i].offMatrix);
+			 shader.setBoneMatrix(i, tform_mat);
+		}
 	  
 	  	
 		   
@@ -813,7 +881,8 @@ override public function render(camera:Camera)
     	for (i in 0... surfaces.length)
 		{
 			
-			  scene.setMaterial(surfaces[i].brush);
+			surfaces[i].brush.Applay();
+			  
 			//  surfaces[i].primitiveType = GL.LINE_LOOP;
 		     surfaces[i].render();
 			  
@@ -827,4 +896,16 @@ override public function render(camera:Camera)
 		super.update();     
 	   OnAnimate(Gdx.Instance().getTimer());
 	}
+	private function sortMaterial():Void
+	{
+	surfaces.sort(materialIndex);
+	}
+	
+	function materialIndex(a:SkinSurface, b:SkinSurface):Int
+    {
+
+    if (a.materialIndex < b.materialIndex) return -1;
+    if (a.materialIndex > b.materialIndex) return 1;
+    return 0;
+    } 
 }

@@ -19,28 +19,28 @@ import lime.utils.Int16Array;
  * ...
  * @author djoekr
  */
-class FlatUnlit extends Shader
+class SkinShader extends Shader
 {
 
- private var MaterialUniform:Dynamic;
+public var bonesAttribute :Int;
+public var wighsAttribute :Int;
+public var boneMatrixUniform:Array<Dynamic>;
+
  
- private var materialType:Int;
- private var lastmaterialType:Int;
 
 	public function new() 
 	{
 		super();
-		 materialType =0 ;
-		 lastmaterialType = -1;
+
 			
 		 var vertexShader = GL.createShader (GL.VERTEX_SHADER);
-        GL.shaderSource (vertexShader, DataShader.VertexShaderUnlit);
+        GL.shaderSource (vertexShader, DataShader.VertexShaderSkin);
         GL.compileShader (vertexShader);
         if (GL.getShaderParameter (vertexShader, GL.COMPILE_STATUS) == 0) 
         {throw ("Load Vert:"+GL.getShaderInfoLog(vertexShader));}
 		
        var fragmentShader = GL.createShader (GL.FRAGMENT_SHADER);
-       GL.shaderSource (fragmentShader, DataShader.FragmentShaderUnlit);
+       GL.shaderSource (fragmentShader, DataShader.FragmentShaderSkin);
        GL.compileShader (fragmentShader);
        if (GL.getShaderParameter (fragmentShader, GL.COMPILE_STATUS) == 0) 
 	   { throw("Load Frag:"+GL.getShaderInfoLog(fragmentShader));}
@@ -55,25 +55,27 @@ if (GL.getProgramParameter (shaderProgram, GL.LINK_STATUS) == 0)
 
 
  GL.useProgram (shaderProgram);
+ 
+
 
 
  projMatrixUniform= GL.getUniformLocation (shaderProgram, "ProjectionMatrix");
  worldMatrixUniform = GL.getUniformLocation (shaderProgram, "WorldMatrix");
  viewMatrixUniform = GL.getUniformLocation (shaderProgram, "ViewMatrix");
+ boneMatrixUniform = [];
  
+ for (i in 0...50)
+{
+var name:String = "gBones[" + i + "]";
+boneMatrixUniform[i] = GL.getUniformLocation (shaderProgram,name);
+
+}
 
 texture0Uniform = GL.getUniformLocation (shaderProgram, "uTextureUnit0");
-texture1Uniform = GL.getUniformLocation (shaderProgram, "uTextureUnit1");
 GL.uniform1i(texture0Uniform, 0);
-GL.uniform1i(texture1Uniform, 1);
-
-MaterialUniform = GL.getUniformLocation (shaderProgram, "uMaterialType");
-GL.uniform1i(MaterialUniform, 0);
 
 
 
-textureUsageUniform = GL.getUniformLocation (shaderProgram, "uTextureUsage0");
-GL.uniform1i(textureUsageUniform, 0);
 
 
 trace(projMatrixUniform + "," + worldMatrixUniform + "," + viewMatrixUniform);
@@ -82,10 +84,19 @@ trace(projMatrixUniform + "," + worldMatrixUniform + "," + viewMatrixUniform);
 vertexAttribute = GL.getAttribLocation (shaderProgram, "inVertexPosition");
 texCoord0Attribute = GL.getAttribLocation (shaderProgram, "inTexCoord0");
 texCoord1Attribute = GL.getAttribLocation (shaderProgram, "inTexCoord1");
-colorAttribute = GL.getAttribLocation (shaderProgram, "inVertexColor");
-normalAttribute = GL.getAttribLocation (shaderProgram, "inVertexNormal");
 
-trace(vertexAttribute+","+normalAttribute+","+texCoord0Attribute+","+texCoord1Attribute+","+colorAttribute );
+trace(vertexAttribute+","+texCoord0Attribute+","+texCoord1Attribute );
+
+
+
+bonesAttribute = GL.getAttribLocation (shaderProgram, "BoneIDs");
+
+
+
+wighsAttribute = GL.getAttribLocation (shaderProgram, "Weights");
+
+trace(bonesAttribute+","+wighsAttribute);
+
 
  GL.useProgram (null); 
 
@@ -96,26 +107,9 @@ trace(vertexAttribute+","+normalAttribute+","+texCoord0Attribute+","+texCoord1At
 
 	}
 	
-	
-	public function setMaterialType(type:Int):Void
+	public function setBoneMatrix(index:Int,m:Matrix4):Void
 	{
-		if (lastmaterialType != type)
-		{
-	     materialType = type;
-		 lastmaterialType = type;
- 	     MaterialUniform = GL.getUniformLocation (shaderProgram, "uMaterialType");
-         GL.uniform1i(MaterialUniform, materialType);
-		}
+ 	GL.uniformMatrix4fv(boneMatrixUniform[index], false, m.m );
 	}
-	
-	
-
-	 
-	
-
-		
-		
-			 
-		
 	
 }

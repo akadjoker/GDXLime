@@ -33,7 +33,9 @@ class Shader
  public var colorAttribute :Int;
  public var texCoord0Attribute :Int;
  public var texCoord1Attribute :Int;
-
+ 
+ 
+  
  
  
 	public function new() 

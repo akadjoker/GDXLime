@@ -5,7 +5,6 @@ package com.gdx.gl.shaders;
 import com.gdx.color.Color3;
 import com.gdx.gl.Texture;
 import com.gdx.math.Matrix4;
-import com.gdx.scene3d.Light;
 import lime.graphics.opengl.GL;
 import lime.graphics.opengl.GLBuffer;
 import lime.graphics.opengl.GLProgram;
